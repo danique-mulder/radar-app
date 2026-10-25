@@ -100,17 +100,17 @@ footer{color:var(--muted);font-size:12.5px;margin-top:28px;text-align:center}
 
   <section id="setup" class="setup" hidden>
     <h2>Connect to your repo</h2>
-    <p>This page runs checks in your private <b>jobradar</b> repo and shows the results. It needs a GitHub access key
+    <p>This page runs checks in your private <b>radar</b> repo and shows the results. It needs a GitHub access key
       that only works on that repo. The key stays in this browser.</p>
     <ol>
       <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → new fine-grained token</a>.</li>
-      <li>Repository access: <b>Only select repositories</b> → <b>jobradar</b>.</li>
+      <li>Repository access: <b>Only select repositories</b> → <b>radar</b>.</li>
       <li>Permissions: <b>Actions</b> read and write, <b>Contents</b> read and write.</li>
       <li>Generate, copy, and paste it below.</li>
     </ol>
     <div class="row">
       <div><label for="owner">GitHub username</label><input id="owner" autocomplete="username" spellcheck="false" placeholder="danique-mulder"></div>
-      <div><label for="repo">Repo</label><input id="repo" value="jobradar" spellcheck="false"></div>
+      <div><label for="repo">Repo</label><input id="repo" value="radar" spellcheck="false"></div>
     </div>
     <label for="token">Access key</label>
     <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
@@ -166,7 +166,7 @@ const store = {
   del(k) { try { localStorage.removeItem("jr_" + k); } catch {} },
 };
 const WORKFLOW = "check.yml", ADD_WF = "add-companies.yml";
-let cfg = { owner: store.get("owner", ""), repo: store.get("repo", "jobradar"), token: store.get("token", "") };
+let cfg = { owner: store.get("owner", ""), repo: store.get("repo", "radar"), token: store.get("token", "") };
 let data = null, statuses = {}, statusSha = null, region = "all";
 
 // ------------------------------------------------------------------ GitHub API
