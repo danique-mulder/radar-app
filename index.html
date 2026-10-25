@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JobRadar</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%232f6f5e'/><circle cx='16' cy='16' r='8' fill='none' stroke='white' stroke-width='2.5'/><circle cx='16' cy='16' r='2.5' fill='white'/></svg>">
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--muted:#6b6a66;--line:#e4e2dc;--accent:#2f6f5e;--accent-ink:#fff;
+--hi:#2f6f5e;--mid:#b07d2b;--lo:#8a8984;--chip:#efede7;--warn:#9a3d2a;--focus:#2f6f5e55}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--card:#1f1f1d;--ink:#ecebe6;--muted:#a3a19a;
+--line:#33322f;--chip:#2a2a27;--hi:#5fb39b;--mid:#d6a55a;--lo:#77766f;--warn:#e08a74;--accent:#5fb39b;--accent-ink:#0f1f1a;--focus:#5fb39b55}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 80px}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.top h1{font-size:24px;margin:0;flex:1;display:flex;align-items:center;gap:8px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:13.5px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.primary:disabled{opacity:.6;cursor:default}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:6px 8px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.runbar{display:none;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+padding:10px 14px;margin-bottom:14px;font-size:14px}
+.runbar.show{display:flex}
+.spin{width:16px;height:16px;border:2.5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;flex:none}
+@keyframes s{to{transform:rotate(360deg)}}
+.runbar.done .spin,.runbar.fail .spin{animation:none;border-color:var(--accent)}
+.runbar.fail .spin{border-color:var(--warn)}
+.runbar a{margin-left:auto;color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12.5px;color:var(--muted)}
+.stat b{font-size:20px;display:block;color:var(--ink)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters input[type=search]{flex:1 1 200px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px}
+.filters select{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:transparent;padding:7px 11px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--chip);color:var(--ink);font-weight:600}
+.range{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.range input{width:110px;accent-color:var(--accent)}
+.job{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;
+display:grid;grid-template-columns:52px 1fr;gap:12px}
+.job.dim{opacity:.55}
+.score{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;background:var(--lo)}
+.score.hi{background:var(--hi)}.score.mid{background:var(--mid)}
+.score.kw{background:transparent;color:var(--muted);border:2px dashed var(--line);font-size:14px}
+.t{font-weight:650;font-size:16px;text-decoration:none}.t:hover{text-decoration:underline}
+.meta{color:var(--muted);font-size:13.5px;margin:2px 0 6px}
+.reason{margin:4px 0}.concern{color:var(--warn);font-size:13.5px;margin:2px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{background:var(--chip);border-radius:999px;padding:1px 9px;font-size:12px;color:var(--muted)}
+.chip.new{background:var(--accent);color:var(--accent-ink)}.chip.flag{color:var(--warn)}
+.chip.st{border:1px solid var(--muted);background:transparent;color:var(--ink)}
+.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.actions button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:3px 10px;font-size:13px;cursor:pointer;color:var(--muted)}
+.actions button:hover{border-color:var(--muted);color:var(--ink)}
+.actions button[aria-pressed=true]{background:var(--chip);color:var(--ink);border-color:var(--muted);font-weight:600}
+details.src{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:14px}
+details.src summary{cursor:pointer;font-weight:600}
+details.src p{color:var(--muted);font-size:13.5px;margin:8px 0}
+.srcrow{display:flex;gap:8px;margin:8px 0}
+.srcrow input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 12px}
+.srclist{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.probe{font-size:13.5px;margin:6px 0}.probe .no{color:var(--warn)}
+.empty{text-align:center;color:var(--muted);padding:48px 16px;background:var(--card);border:1px dashed var(--line);border-radius:12px}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.setup{max-width:520px;margin:32px auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.setup h2{margin:0 0 6px;font-size:20px}
+.setup p,.setup li{color:var(--muted);font-size:14px}
+.setup ol{padding-left:20px;margin:8px 0 16px}
+.setup label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+.setup input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px}
+.setup .row{display:flex;gap:10px}.setup .row>div{flex:1}
+.err{color:var(--warn);font-size:13.5px;margin-top:10px;min-height:1em}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;
+border-radius:10px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
+.toast.show{opacity:1}
+footer{color:var(--muted);font-size:12.5px;margin-top:28px;text-align:center}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.job{grid-template-columns:44px 1fr;padding:12px}
+.score{width:44px;height:44px;font-size:16px}.range input{width:80px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>JobRadar</h1>
+    <button class="btn ghost" id="settingsBtn" hidden>Settings</button>
+    <button class="btn primary" id="runBtn" hidden>Run check</button>
+  </div>
+  <p class="sub" id="sub"></p>
+
+  <div class="runbar" id="runbar" role="status" aria-live="polite">
+    <div class="spin"></div><span id="runText"></span><a id="runLink" target="_blank" rel="noopener" hidden>View log</a>
+  </div>
+
+  <section id="setup" class="setup" hidden>
+    <h2>Connect to your repo</h2>
+    <p>This page runs checks in your private <b>jobradar</b> repo and shows the results. It needs a GitHub access key
+      that only works on that repo. The key stays in this browser.</p>
+    <ol>
+      <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → new fine-grained token</a>.</li>
+      <li>Repository access: <b>Only select repositories</b> → <b>jobradar</b>.</li>
+      <li>Permissions: <b>Actions</b> read and write, <b>Contents</b> read and write.</li>
+      <li>Generate, copy, and paste it below.</li>
+    </ol>
+    <div class="row">
+      <div><label for="owner">GitHub username</label><input id="owner" autocomplete="username" spellcheck="false" placeholder="danique-mulder"></div>
+      <div><label for="repo">Repo</label><input id="repo" value="jobradar" spellcheck="false"></div>
+    </div>
+    <label for="token">Access key</label>
+    <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
+    <div class="err" id="setupErr"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn primary" id="saveBtn">Connect</button>
+      <button class="btn ghost" id="cancelBtn" hidden>Cancel</button>
+      <button class="btn ghost" id="forgetBtn" hidden style="margin-left:auto">Forget key</button>
+    </div>
+  </section>
+
+  <section id="dash" hidden>
+    <div class="stats" id="stats"></div>
+    <details class="src" id="srcPanel">
+      <summary>Job sources</summary>
+      <p>Add companies whose career pages should be checked. GitHub looks each one up on Greenhouse, Lever and Ashby
+        and adds the ones it finds. Companies on other platforms (e.g. Workday) need adding in the repo's config.yaml.</p>
+      <div class="srcrow">
+        <input id="compIn" placeholder="e.g. Genmab, Oxford Nanopore" aria-label="Company names, comma-separated">
+        <button class="btn" id="compBtn">Add</button>
+      </div>
+      <div class="probe" id="probeOut"></div>
+      <div class="srclist" id="srcList"></div>
+    </details>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search title, company, reason…" aria-label="Search">
+      <div class="seg" id="regionSeg" role="group" aria-label="Region">
+        <button data-v="all" aria-pressed="true">All</button><button data-v="NL">NL</button>
+        <button data-v="UK">London</button><button data-v="Remote">Remote</button>
+      </div>
+      <select id="statusSel" aria-label="Status">
+        <option value="active">To review</option><option value="interesting">Interesting</option>
+        <option value="applied">Applied</option><option value="rejected">Rejected</option>
+        <option value="hidden">Hidden</option><option value="all">All</option>
+      </select>
+      <select id="sortSel" aria-label="Sort">
+        <option value="score">Best match</option><option value="new">Newest</option>
+      </select>
+      <label class="range">Min <input type="range" id="minScore" min="0" max="90" step="5" value="0"><span id="minVal">0</span></label>
+    </div>
+    <div id="list"></div>
+    <footer>Scores in a dashed circle (~) are keyword estimates; they get an AI score on a later check.</footer>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { return localStorage.getItem("jr_" + k) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("jr_" + k, v); } catch {} },
+  del(k) { try { localStorage.removeItem("jr_" + k); } catch {} },
+};
+const WORKFLOW = "check.yml", ADD_WF = "add-companies.yml";
+let cfg = { owner: store.get("owner", ""), repo: store.get("repo", "jobradar"), token: store.get("token", "") };
+let data = null, statuses = {}, statusSha = null, region = "all";
+
+// ------------------------------------------------------------------ GitHub API
+async function gh(path, opts = {}) {
+  const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${cfg.token}`, "X-GitHub-Api-Version": "2022-11-28",
+               Accept: "application/vnd.github+json", ...(opts.headers || {}) },
+  });
+  if (!r.ok && r.status !== 404) {
+    let msg = `${r.status}`;
+    try { msg += ": " + (await r.json()).message; } catch {}
+    throw new Error(msg);
+  }
+  return r;
+}
+async function readJson(file) {
+  const r = await gh(`/contents/${file}`);
+  if (r.status === 404) return { body: null, sha: null };
+  const meta = await r.json();
+  let text;
+  if (meta.content && meta.encoding === "base64") {
+    text = new TextDecoder().decode(Uint8Array.from(atob(meta.content.replace(/\n/g, "")), c => c.charCodeAt(0)));
+  } else {                                // files over 1 MB: fetch raw
+    const raw = await gh(`/contents/${file}`, { headers: { Accept: "application/vnd.github.raw+json" } });
+    text = await raw.text();
+  }
+  return { body: JSON.parse(text), sha: meta.sha };
+}
+function b64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = ""; bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+
+// ------------------------------------------------------------------ setup
+function showSetup(firstTime) {
+  $("setup").hidden = false; $("dash").hidden = true;
+  $("runBtn").hidden = true; $("settingsBtn").hidden = true;
+  $("owner").value = cfg.owner; $("repo").value = cfg.repo; $("token").value = cfg.token;
+  $("cancelBtn").hidden = firstTime; $("forgetBtn").hidden = !cfg.token;
+  $("sub").textContent = "";
+}
+$("saveBtn").onclick = async () => {
+  const next = { owner: $("owner").value.trim(), repo: $("repo").value.trim(), token: $("token").value.trim() };
+  if (!next.owner || !next.repo || !next.token) { $("setupErr").textContent = "Fill in all three fields."; return; }
+  const prev = cfg; cfg = next;
+  $("setupErr").textContent = "Checking…";
+  try {
+    const r = await gh("");
+    if (r.status === 404) throw new Error("Repo not found, or the key has no access to it.");
+    const w = await gh(`/actions/workflows/${WORKFLOW}`);
+    if (w.status === 404) throw new Error("Connected, but the repo has no check workflow yet.");
+  } catch (e) { cfg = prev; $("setupErr").textContent = e.message; return; }
+  store.set("owner", cfg.owner); store.set("repo", cfg.repo); store.set("token", cfg.token);
+  $("setupErr").textContent = "";
+  start();
+};
+$("cancelBtn").onclick = start;
+$("forgetBtn").onclick = () => { store.del("token"); cfg.token = ""; $("token").value = ""; $("forgetBtn").hidden = true; toast("Key removed from this browser"); };
+$("settingsBtn").onclick = () => showSetup(false);
+
+// ------------------------------------------------------------------ load
+async function load() {
+  $("list").innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const [res, st] = await Promise.all([readJson("data/results.json"), readJson("data/status.json")]);
+    data = res.body; statuses = st.body || {}; statusSha = st.sha;
+  } catch (e) { $("list").innerHTML = `<div class="empty"><b>Couldn't load results</b>${esc(e.message)}</div>`; return; }
+  render();
+}
+
+// ------------------------------------------------------------------ render
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const statusOf = j => statuses[j.id] || j.status || "new";
+const shown = j => j.score ?? j.estimate;
+
+function render() {
+  if (!data) {
+    $("stats").innerHTML = ""; $("sub").textContent = "No checks yet.";
+    $("list").innerHTML = '<div class="empty"><b>No results yet</b>Press <i>Run check</i> to look for jobs. It takes a few minutes.</div>';
+    return;
+  }
+  const upd = new Date(data.updated);
+  $("sub").textContent = `Last check ${upd.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
+  const jobs = data.jobs;
+  const active = jobs.filter(j => !["rejected", "hidden"].includes(statusOf(j)));
+  const fresh = jobs.filter(j => j.first_seen === data.updated.slice(0, 10)).length;
+  $("stats").innerHTML = [
+    [active.length, "to consider"], [fresh, "new last check"],
+    [active.filter(j => shown(j) >= 75).length, "top matches"],
+    [jobs.filter(j => statusOf(j) === "applied").length, "applied"],
+  ].map(([n, l]) => `<div class="stat"><b>${n}</b>${l}</div>`).join("");
+
+  const q = $("q").value.trim().toLowerCase(), sf = $("statusSel").value, min = +$("minScore").value;
+  let list = jobs.filter(j => {
+    const s = statusOf(j);
+    if (sf === "active" ? ["rejected", "hidden", "applied"].includes(s) : sf !== "all" && s !== sf) return false;
+    if (region !== "all" && j.region !== region) return false;
+    if (shown(j) < min) return false;
+    if (q && !`${j.title} ${j.company} ${j.location} ${j.reason} ${j.role}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  list.sort($("sortSel").value === "new"
+    ? (a, b) => (b.first_seen || "").localeCompare(a.first_seen || "") || shown(b) - shown(a)
+    : (a, b) => shown(b) - shown(a));
+  $("list").innerHTML = list.length ? list.map(card).join("")
+    : '<div class="empty"><b>Nothing here</b>Try a different filter.</div>';
+}
+
+function card(j) {
+  const s = shown(j), kw = j.score == null, st = statusOf(j);
+  const cls = kw ? "kw" : s >= 75 ? "hi" : s >= 50 ? "mid" : "";
+  const chips = [];
+  if (j.first_seen === data.updated.slice(0, 10)) chips.push('<span class="chip new">new</span>');
+  if (j.region) chips.push(`<span class="chip">${esc(j.region === "UK" ? "London" : j.region)}</span>`);
+  if (j.role) chips.push(`<span class="chip">${esc(j.role)}</span>`);
+  if (j.salary) chips.push(`<span class="chip">${esc(j.salary)}</span>`);
+  (j.flags || []).forEach(f => chips.push(`<span class="chip flag">${esc(f)}</span>`));
+  const src = esc(j.source) + (j.also_on?.length ? " + " + esc(j.also_on.join(", ")) : "");
+  const reason = j.reason ? esc(j.reason) : "Keyword match: " + esc((j.hits || []).join(", ").slice(0, 160));
+  const btn = (v, label) => `<button data-id="${j.id}" data-st="${v}" aria-pressed="${st === v}">${label}</button>`;
+  return `<article class="job${["rejected", "hidden"].includes(st) ? " dim" : ""}">
+    <div class="score ${cls}" title="${kw ? "Keyword estimate" : "AI score"}">${kw ? "~" + s : s}</div>
+    <div>
+      <a class="t" href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.title)}</a>
+      <div class="meta">${esc(j.company)} · ${esc(j.location || "location n/a")} · ${src}${j.posted ? " · posted " + esc(j.posted) : ""}</div>
+      <div class="reason">${reason}</div>
+      ${j.concerns ? `<div class="concern">⚠ ${esc(j.concerns)}</div>` : ""}
+      <div class="chips">${chips.join("")}</div>
+      <div class="actions">${btn("interesting", "★ Interesting")}${btn("applied", "Applied")}${btn("rejected", "Not for me")}${btn("hidden", "Hide")}</div>
+    </div></article>`;
+}
+
+// ------------------------------------------------------------------ statuses
+let saving = Promise.resolve();
+$("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-st]");
+  if (!b) return;
+  const id = b.dataset.id, v = b.dataset.st;
+  if (statuses[id] === v) statuses[id] = "new"; else statuses[id] = v;
+  render();
+  saving = saving.then(saveStatuses);
+});
+async function saveStatuses() {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const body = { message: "Update job statuses", content: b64(JSON.stringify(statuses, null, 1)) };
+      if (statusSha) body.sha = statusSha;
+      const r = await gh("/contents/data/status.json", { method: "PUT", body: JSON.stringify(body) });
+      statusSha = (await r.json()).content.sha;
+      toast("Saved");
+      return;
+    } catch (e) {
+      if (/^409|^422/.test(e.message)) {            // someone else changed it: merge and retry
+        const st = await readJson("data/status.json");
+        statuses = { ...(st.body || {}), ...statuses }; statusSha = st.sha;
+        continue;
+      }
+      toast("Couldn't save: " + e.message); return;
+    }
+  }
+}
+
+// ------------------------------------------------------------------ run workflows
+let polling = null, busy = false;
+async function dispatch(wf, inputs, labels, onDone) {
+  if (busy) { toast("A check is already running"); return; }
+  busy = true; $("runBtn").disabled = true; $("compBtn").disabled = true; $("runLink").hidden = true;
+  setRun("busy", labels.start);
+  const t0 = Date.now();
+  try {
+    const def = await (await gh("")).json();
+    const r = await gh(`/actions/workflows/${wf}/dispatches`,
+      { method: "POST", body: JSON.stringify({ ref: def.default_branch || "main", ...(inputs ? { inputs } : {}) }) });
+    if (r.status === 404) throw new Error(`workflow ${wf} not found`);
+  } catch (e) { setRun("fail", "Couldn't start: " + e.message); release(); return; }
+  poll(wf, t0, labels, onDone);
+}
+function release() { busy = false; $("runBtn").disabled = false; $("compBtn").disabled = false; }
+function poll(wf, t0, labels, onDone) {
+  clearInterval(polling);
+  busy = true; $("runBtn").disabled = true; $("compBtn").disabled = true;
+  const tick = async () => {
+    try {
+      const r = await gh(`/actions/workflows/${wf}/runs?event=workflow_dispatch&per_page=5`);
+      const runs = (await r.json()).workflow_runs || [];
+      const found = runs.find(x => new Date(x.created_at).getTime() >= t0 - 30000) || null;
+      const sec = Math.floor((Date.now() - t0) / 1000), el = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+      if (!found) { setRun("busy", `Waiting for GitHub to start… ${el}`); return; }
+      $("runLink").href = found.html_url; $("runLink").hidden = false;
+      if (found.status !== "completed") { setRun("busy", `${found.status === "queued" ? "Queued" : labels.running}… ${el}`); return; }
+      clearInterval(polling); release();
+      if (found.conclusion === "success") {
+        setRun("done", labels.done + " Loading…");
+        await new Promise(res => setTimeout(res, 2500));   // let the commit land
+        await onDone();
+        setRun("done", labels.done);
+        setTimeout(() => $("runbar").classList.remove("show"), 6000);
+      } else setRun("fail", `${labels.name} ${found.conclusion}. Open the log to see why.`);
+    } catch (e) { setRun("fail", "Lost track of it: " + e.message); clearInterval(polling); release(); }
+  };
+  tick(); polling = setInterval(tick, 7000);
+}
+const CHECK = { name: "Check", start: "Starting check…", running: "Checking job sites and scoring", done: "Check finished." };
+const ADD = { name: "Lookup", start: "Looking up companies…", running: "Looking up companies", done: "Lookup finished." };
+$("runBtn").onclick = () => dispatch(WORKFLOW, null, CHECK, load);
+$("compBtn").onclick = () => {
+  const v = $("compIn").value.trim();
+  if (!v) { $("compIn").focus(); return; }
+  dispatch(ADD_WF, { companies: v }, ADD, async () => { $("compIn").value = ""; await loadSources(true); });
+};
+async function loadSources(showProbe) {
+  try {
+    const [c, pr] = await Promise.all([readJson("companies.json"), showProbe ? readJson("data/probe.json") : { body: null }]);
+    const comps = c.body || {};
+    const names = ["greenhouse", "lever", "ashby", "workday", "rss"].flatMap(k => (comps[k] || []).map(x => `${x.company || x.label || x.board} · ${k}`));
+    $("srcList").innerHTML = names.length ? names.map(n => `<span class="chip">${esc(n)}</span>`).join("")
+      : '<span style="color:var(--muted);font-size:13.5px">No companies added yet.</span>';
+    if (pr.body) {
+      $("probeOut").innerHTML = Object.entries(pr.body.results).map(([n, r]) => r.found
+        ? `✓ <b>${esc(n)}</b>: ${esc(r.platform)}, ${r.jobs} open jobs, added`
+        : `<span class="no">✗ <b>${esc(n)}</b>: not found on these platforms</span>`).join("<br>");
+    }
+  } catch (e) { $("srcList").textContent = "Couldn't load sources: " + e.message; }
+}
+
+function setRun(state, text) {
+  const rb = $("runbar");
+  rb.className = "runbar show" + (state === "done" ? " done" : state === "fail" ? " fail" : "");
+  $("runText").textContent = text;
+}
+
+// ------------------------------------------------------------------ misc
+let toastT;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200); }
+["q", "statusSel", "sortSel", "minScore"].forEach(id => $(id).addEventListener("input", () => {
+  if (id === "minScore") $("minVal").textContent = $("minScore").value;
+  render();
+}));
+$("regionSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  region = b.dataset.v;
+  [...$("regionSeg").children].forEach(x => x.setAttribute("aria-pressed", x === b));
+  render();
+});
+
+async function start() {
+  if (!cfg.owner || !cfg.token) return showSetup(true);
+  $("setup").hidden = true; $("dash").hidden = false;
+  $("runBtn").hidden = false; $("settingsBtn").hidden = false;
+  await Promise.all([load(), loadSources(false)]);
+  // Resume watching a check that is still running (e.g. after reopening the page).
+  for (const [wf, labels, done] of [[WORKFLOW, CHECK, load], [ADD_WF, ADD, () => loadSources(true)]]) {
+    try {
+      const r = await gh(`/actions/workflows/${wf}/runs?per_page=1`);
+      const run = (await r.json()).workflow_runs?.[0];
+      if (run && run.status !== "completed") { poll(wf, new Date(run.created_at).getTime(), labels, done); break; }
+    } catch {}
+  }
+}
+start();
+})();
+</script>
+</body>
+</html>
